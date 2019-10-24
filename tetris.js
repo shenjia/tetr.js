@@ -854,17 +854,25 @@ var released;
 
 var binds = {
   pause: 27,
-  moveLeft: 37,
-  moveRight: 39,
-  moveLeft3: 0,
-  moveRight3: 0,
+  moveLeft: 72,
+  moveRight: 78,
+  moveLeft3: 190,
+  moveRight3: 67,
+  moveLeft2: 65,
+  moveRight2: 83,
+  moveLeftGap: 32,
+  moveRightGap: 93,
+  moveLeftEdge: 71,
+  moveRightEdge: 82,
+  insertLeft: 0,
+  insertRight: 0,
   moveDown: 40,
-  hardDrop: 32,
-  holdPiece: 67,
-  rotRight: 88,
-  rotLeft: 90,
-  rot180: 16,
-  retry: 82
+  hardDrop: 84,
+  holdPiece: 73,
+  rotRight: 85,
+  rotLeft: 79,
+  rot180: 69,
+  retry: 13
 };
 var flags = {
   hardDrop: 1,
@@ -877,6 +885,14 @@ var flags = {
   rot180: 128,
   moveRight3: 256,
   moveLeft3: 512,
+  moveRight2: 1024,
+  moveLeft2: 2048,
+  moveRightGap: 4096,
+  moveLeftGap: 8192,
+  moveRightEdge: 16384,
+  moveLeftEdge: 32768,
+  insertLeft: 65536,
+  insertRight: 131072
 };
 
 function resize() {
@@ -1147,7 +1163,6 @@ function init(gt, params) {
   // don't keep looping when not played
   // in the 0~16ms after the last frame, inloop==true and gameState==3
   // retry is instant event, so double RAF here... 
-  console.log(paused,gameState,inloop);
   if (/*paused || gameState === 3*/ !inloop) {
     console.log("start inloop",inloop);
     inloop=true;
@@ -1512,10 +1527,26 @@ function keyUpDown(e) {
         keysDown |= flags.rotLeft;
       } else if (e.keyCode === binds.rot180) {
         keysDown |= flags.rot180;
+      } else if (e.keyCode === binds.moveLeft2) {
+        keysDown |= flags.moveLeft2;
+      } else if (e.keyCode === binds.moveRight2) {
+        keysDown |= flags.moveRight2;
       } else if (e.keyCode === binds.moveLeft3) {
         keysDown |= flags.moveLeft3;
       } else if (e.keyCode === binds.moveRight3) {
         keysDown |= flags.moveRight3;
+      } else if (e.keyCode === binds.moveLeftGap) {
+        keysDown |= flags.moveLeftGap;
+      } else if (e.keyCode === binds.moveRightGap) {
+        keysDown |= flags.moveRightGap;
+      } else if (e.keyCode === binds.moveLeftEdge) {
+        keysDown |= flags.moveLeftEdge;
+      } else if (e.keyCode === binds.moveRightEdge) {
+        keysDown |= flags.moveRightEdge;
+      } else if (e.keyCode === binds.insertLeft) {
+        keysDown |= flags.insertLeft;
+      } else if (e.keyCode === binds.insertRight) {
+        keysDown |= flags.insertRight;
       } else if (e.keyCode === binds.holdPiece) {
         keysDown |= flags.holdPiece;
       }
@@ -1536,10 +1567,26 @@ function keyUpDown(e) {
         keysDown ^= flags.rotLeft;
       } else if (e.keyCode === binds.rot180 && keysDown & flags.rot180) {
         keysDown ^= flags.rot180;
+      } else if (e.keyCode === binds.moveLeft2 && keysDown & flags.moveLeft2) {
+        keysDown ^= flags.moveLeft2;
+      } else if (e.keyCode === binds.moveRight2 && keysDown & flags.moveRight2) {
+        keysDown ^= flags.moveRight2;
       } else if (e.keyCode === binds.moveLeft3 && keysDown & flags.moveLeft3) {
         keysDown ^= flags.moveLeft3;
       } else if (e.keyCode === binds.moveRight3 && keysDown & flags.moveRight3) {
         keysDown ^= flags.moveRight3;
+      } else if (e.keyCode === binds.moveLeftGap && keysDown & flags.moveLeftGap) {
+        keysDown ^= flags.moveLeftGap;
+      } else if (e.keyCode === binds.moveRightGap && keysDown & flags.moveRightGap) {
+        keysDown ^= flags.moveRightGap;
+      } else if (e.keyCode === binds.moveLeftEdge && keysDown & flags.moveLeftEdge) {
+        keysDown ^= flags.moveLeftEdge;
+      } else if (e.keyCode === binds.moveRightEdge && keysDown & flags.moveRightEdge) {
+        keysDown ^= flags.moveRightEdge;
+      } else if (e.keyCode === binds.insertLeft && keysDown & flags.insertLeft) {
+        keysDown ^= flags.insertLeft;
+      } else if (e.keyCode === binds.insertRight && keysDown & flags.insertRight) {
+        keysDown ^= flags.insertRight;
       } else if (e.keyCode === binds.holdPiece && keysDown & flags.holdPiece) {
         keysDown ^= flags.holdPiece;
       }

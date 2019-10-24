@@ -29,7 +29,7 @@ Piece.prototype.new = function(index) {
 
   this.pos = RotSys[settings.RotSys].initinfo[index][2];
   this.x = ~~((stack.width - 4) / 2) + RotSys[settings.RotSys].initinfo[index][0];
-  this.y = stack.hiddenHeight - 2 + RotSys[settings.RotSys].initinfo[index][1];
+  this.y = stack.hiddenHeight + RotSys[settings.RotSys].initinfo[index][1];
   this.index = index;
   this.tetro = [];
   this.held = false;
@@ -188,90 +188,74 @@ Piece.prototype.rotate = function(direction) {
 }
 
 Piece.prototype.checkShift = function() {
-  // Shift key pressed event.
   if (keysDown & flags.moveLeft && !(lastKeys & flags.moveLeft)) {
-    this.shiftDelay = 0;
-    this.arrDelay = 0;
-    this.shiftReleased = true;
-    this.shiftDir = -1;
+    this.moveAndDrop(-1, 1)
     this.finesse++;
   } else if (keysDown & flags.moveRight && !(lastKeys & flags.moveRight)) {
-    this.shiftDelay = 0;
-    this.arrDelay = 0;
-    this.shiftReleased = true;
-    this.shiftDir = 1;
+    this.moveAndDrop(1, 1)
     this.finesse++;
   }
-  // Shift key released event.
-  if (this.shiftDir === 1 &&
-  !(keysDown & flags.moveRight) && lastKeys & flags.moveRight && keysDown & flags.moveLeft) {
-    this.shiftDelay = 0;
-    this.arrDelay = 0;
-    this.shiftReleased = true;
-    this.shiftDir = -1;
-  } else if (this.shiftDir === -1 &&
-  !(keysDown & flags.moveLeft) && lastKeys & flags.moveLeft && keysDown & flags.moveRight) {
-    this.shiftDelay = 0;
-    this.arrDelay = 0;
-    this.shiftReleased = true;
-    this.shiftDir = 1;
-  } else if (
-  !(keysDown & flags.moveRight) && lastKeys & flags.moveRight && keysDown & flags.moveLeft) {
-    this.shiftDir = -1;
-  } else if (
-  !(keysDown & flags.moveLeft) && lastKeys & flags.moveLeft && keysDown & flags.moveRight) {
-    this.shiftDir = 1;
-  } else if ((!(keysDown & flags.moveLeft) && lastKeys & flags.moveLeft) ||
-             (!(keysDown & flags.moveRight) && lastKeys & flags.moveRight)) {
-    this.shiftDelay = 0;
-    this.arrDelay = 0;
-    this.shiftReleased = true;
-    this.shiftDir = 0;
-  }
-  // Handle events
-  /* farter */
-  // here problem causes it taking 2 frames to move 1 grid even ARR=1
-  var dascut = [false,true][(settings.DASCut || 0)]
-  //if (dascut) {
-  //  this.ShiftDir = 0;
-  //  console.log("interrupt")
-  //}
-  if (this.shiftDir) {
-    // 1. When key pressed instantly move over once.
-    if (this.shiftReleased && settings.DAS !== 0) {
-      this.shift(this.shiftDir);
-      this.shiftDelay++;
-      this.shiftReleased = false;
-    // 2. Apply DAS delay
-    } else if (this.shiftDelay < settings.DAS) {
-      this.shiftDelay++;
-    // 3. Once the delay is complete, move over once.
-    //     Increment delay so this doesn't run again.
-    // if arr=0, repeat here, not entering 4
-    // but if dascut, let shiftdelay == das + 1 and arrdelay = 0 which is not < arr
-    } else if (this.shiftDelay === settings.DAS) {
-      this.shift(this.shiftDir);
-      if (settings.ARR !== 0 || dascut) this.shiftDelay++;
-    // 4. Apply ARR delay
-    } else if (this.arrDelay < settings.ARR) {
-      this.arrDelay++;
-    // 5. If ARR Delay is full, move piece, and reset delay and repeat.
-    /*
-    } else if (this.arrDelay === settings.ARR && settings.ARR !== 0) {
-    */
-      if (this.arrDelay === settings.ARR && settings.ARR !== 0) {
-        this.shift(this.shiftDir);
-      }
-    }
+  if (keysDown & flags.moveLeft2 && !(lastKeys & flags.moveLeft2)) {
+    this.moveAndDrop(-1, 2)
+    this.finesse++;
+  } else if (keysDown & flags.moveRight2 && !(lastKeys & flags.moveRight2)) {
+    this.moveAndDrop(1, 2)
+    this.finesse++;
   }
   if (flags.moveLeft3 & keysDown && !(lastKeys & flags.moveLeft3)) {
-    this.multiShift(-1, 3);
+    this.moveAndDrop(-1, 3);
     this.finesse++;
   } else if (flags.moveRight3 & keysDown && !(lastKeys & flags.moveRight3)) {
-    this.multiShift(1, 3);
+    this.moveAndDrop(1, 3);
+    this.finesse++;
+  }
+  if (flags.moveLeftEdge & keysDown && !(lastKeys & flags.moveLeftEdge)) {
+    this.moveToEdge(-1);
+    this.hardDrop();
+    this.finesse++;
+  } else if (flags.moveRightEdge & keysDown && !(lastKeys & flags.moveRightEdge)) {
+    this.moveToEdge(1);
+    this.hardDrop();
+    this.finesse++;
+  }
+  if (flags.moveLeftGap & keysDown && !(lastKeys & flags.moveLeftGap)) {
+    this.moveToEdge(-1);
+    this.moveAndDrop(1, 1);
+    this.finesse++;
+  } else if (flags.moveRightGap & keysDown && !(lastKeys & flags.moveRightGap)) {
+    this.moveToEdge(1);
+    this.moveAndDrop(-1, 1);
+    this.finesse++;
+  }
+  if (flags.insertLeft & keysDown && !(lastKeys & flags.insertLeft)) {
+    this.moveToEdge(-1);
+    this.y += this.getDrop(20);
+    this.moveToEdge(1);
+    this.hardDrop();
+    this.finesse++;
+  } else if (flags.insertRight & keysDown && !(lastKeys & flags.insertRight)) {
+    this.moveToEdge(1);
+    this.y += this.getDrop(20);
+    this.moveToEdge(-1);
+    this.hardDrop();
     this.finesse++;
   }
 }
+Piece.prototype.moveAndDrop = function(direction, count) {
+  for (var i = 0; i < count && this.moveValid(direction, 0, this.tetro); ++i) {
+    this.x += direction;
+  }
+  this.hardDrop();
+}
+Piece.prototype.moveToEdge = function(direction) {
+    while (true) {
+      if (this.moveValid(direction, 0, this.tetro)) {
+        this.x += direction;
+      } else {
+        break;
+      }
+    }  
+}     
 Piece.prototype.shift = function(direction) {
   this.arrDelay = 0;
   if (settings.ARR === 0 && this.shiftDelay === settings.DAS) {
